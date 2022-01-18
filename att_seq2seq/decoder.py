@@ -1,7 +1,7 @@
 from chainer import serializers
 
 
-class Decoder(object):
+class Decoder:
     def __init__(self, model, data_converter, npz):
         self.model = model
         self.data_converter = data_converter

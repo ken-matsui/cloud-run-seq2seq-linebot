@@ -1,5 +1,3 @@
-# coding: utf-8
-
 from chainer import cuda
 import numpy as np
 from google.cloud import language

@@ -1,5 +1,3 @@
-# coding: utf-8
-
 import chainer.functions as F
 import chainer.links as L
 from chainer import Chain, Variable, cuda
