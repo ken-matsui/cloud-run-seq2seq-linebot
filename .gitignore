@@ -12,3 +12,4 @@ __pycache__
 matsui*
 
 models/*.npz
+data/*.txt
