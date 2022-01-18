@@ -1,3 +1,5 @@
+# ref: https://cloud.google.com/run/docs/quickstarts/build-and-deploy/python
+
 # Use the official lightweight Python image.
 # https://hub.docker.com/_/python
 FROM python:3.6-slim
