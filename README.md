@@ -1,8 +1,8 @@
-## gcf_linebot
+## Linebot on Cloud Run
 
-* Google Source Repositories
-* Google Cloud Functions
+### How to deploy
 
 ```bash
-gcloud beta functions ...
+# Upload a docker image ...
+# Deploy the image on Cloud Run ...
 ```
