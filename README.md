@@ -3,6 +3,5 @@
 ### How to deploy
 
 ```bash
-# Upload a docker image ...
-# Deploy the image on Cloud Run ...
+gcloud run deploy
 ```
