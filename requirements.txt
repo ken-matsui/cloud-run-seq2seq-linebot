@@ -1,6 +1,6 @@
 Flask==2.0.2
 gunicorn==20.1.0
 line-bot-sdk==2.0.1
-chainer==3.5.0
+chainer==7.8.1
 numpy==1.19.5
 mecab-python3==0.7
