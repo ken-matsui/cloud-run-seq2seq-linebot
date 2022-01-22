@@ -12,6 +12,11 @@ ENV APP_HOME /app
 WORKDIR $APP_HOME
 COPY . ./
 
+# Install mecab
+RUN apt-get update && apt-get install -y sudo git curl file build-essential mecab libmecab-dev
+RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git
+RUN ./mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -y
+
 # Install production dependencies.
 RUN pip install --no-cache-dir -r requirements.txt
 
