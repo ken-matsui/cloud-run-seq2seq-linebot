@@ -1,16 +1,14 @@
-from chainer import cuda
-import numpy as np
-from google.cloud import language
-from google.cloud.language import enums
-from google.cloud.language import types
-from google.cloud import storage
+import os
 
-FLAG_GPU = False
-if FLAG_GPU:
-    xp = cuda.cupy
-    cuda.get_device_from_id(0).use()
-else:
-    xp = np
+# import numpy as np
+import MeCab
+
+
+def load_vocab():
+    # 単語辞書データを取り出す
+    with open("vocab.txt", 'r') as f:
+        lines = f.readlines()
+    return list(map(lambda s: s.replace("\n", ""), lines))
 
 
 # データ変換クラスの定義
@@ -19,41 +17,32 @@ class DataConverter:
         """
         クラスの初期化
         """
-        # Instantiates a client
-        self.client = language.LanguageServiceClient()
+        self.mecab = MeCab.Tagger("-d /usr/lib/x86_64-linux-gnu/mecab/dic/mecab-ipadic-neologd")
         # 単語辞書の登録
-        self.vocab = {}
-        # CloudStorageからvocabファイルをDownload
-        txt = "vocab.txt"
-        storage_client = storage.Client()
-        bucket = storage_client.get_bucket("ml-datas")
-        blob = storage.Blob("att-seq2seq/v1/" + txt, bucket)
-        lines = blob.download_as_string().decode("utf-8").split("\n")
-        for i, line in enumerate(lines):
-            if line:  # 空行を弾く
-                self.vocab[line] = i
+        self.vocab = load_vocab()
+
+        # with open("vocab.txt", "r") as file:
+        #     lines = file.read().split("\n")
+        #
+        # for i, line in enumerate(lines):
+        #     if line:  # 空行を弾く
+        #         self.vocab[line] = i
 
     def sentence2words(self, sentence):
         """
         文章を単語の配列にして返却する
         :param sentence: 文章文字列
         """
-        # Natural Language API
-        # The text to analyze
-        document = types.Document(content=sentence, type=enums.Document.Type.PLAIN_TEXT)
-        # Detects syntax in the document. You can also analyze HTML with:
-        #   document.type == enums.Document.Type.HTML
-        tokens = self.client.analyze_syntax(document).tokens
-
         sentence_words = []
-        for token in tokens:
-            w = token.text.content  # 単語
-            if len(w) != 0:  # 不正文字は省略
-                sentence_words.append(w)
-        sentence_words.append("<eos>")  # 最後にvocabに登録している<eos>を代入する
+        for m in self.mecab.parse(sentence).split("\n"):
+            w = m.split("\t")[0].lower()
+            if (len(w) == 0) or (w == "eos"):
+                continue
+            sentence_words.append(w)
+        sentence_words.append("<eos>")
         return sentence_words
 
-    def sentence2ids(self, sentence, sentence_type="query"):
+    def sentence2ids(self, sentence):
         """
         文章を単語IDのNumpy配列に変換して返却する
         :param sentence: 文章文字列
@@ -64,10 +53,9 @@ class DataConverter:
         sentence_words = self.sentence2words(sentence)  # 文章を単語に分解する
         for word in sentence_words:
             if word in self.vocab:  # 単語辞書に存在する単語ならば、IDに変換する
-                ids.append(self.vocab[word])
-            else:  # 単語辞書に存在しない単語ならば、<unk>に変換する
-                ids.append(self.vocab["<unk>"])
-        ids = xp.array([ids], dtype="int32")
+                ids.append(self.vocab.index(word))
+            else:  # 単語辞書に存在しない単語ならば、<unk>のIDに変換する
+                ids.append(self.vocab.index("<unk>"))
         return ids
 
     def ids2words(self, ids):
@@ -78,5 +66,5 @@ class DataConverter:
         """
         words = []  # 単語を格納する配列
         for i in ids:  # 順番に単語IDを単語辞書から参照して単語に変換する
-            words.append(list(self.vocab.keys())[list(self.vocab.values()).index(i)])
+            words.append(self.vocab[int(i)])  # TODO: これらの変更は不要かも！！！！
         return words
